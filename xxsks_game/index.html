@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1026">
+  <meta name="format-detection" content="telephone=no">
+  <!-- iOS 全屏/状态栏 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="学习大冒险">
+  <title>🚀 学习大冒险</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css?v=11">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230b1026'/><text y='.9em' x='6' font-size='78'>🚀</text></svg>">
+</head>
+<body>
+  <div id="app"></div>
+
+  <script src="js/questions.js?v=9"></script>
+  <script src="js/levels.js?v=9"></script>
+  <script src="js/english.js?v=9"></script>
+  <script src="js/pinyin.js?v=2"></script>
+  <script src="js/subjects.js?v=11"></script>
+  <script src="js/storage.js?v=10"></script>
+  <script src="js/sound.js?v=9"></script>
+  <script src="js/game.js?v=11"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function () {
+      window.Game.init();
+    });
+    // ==== 一次性自愈：清掉旧版 Service Worker + 缓存，跳出卡死的旧代码 ====
+    // 旧版用“缓存优先”会把老代码钉死在手机上，这里强制注销+清缓存+刷新一次。
+    (function () {
+      if (location.protocol.indexOf('http') !== 0) return;
+      var HEAL_KEY = 'sw_heal_v3';
+      try {
+        if ('serviceWorker' in navigator && !localStorage.getItem(HEAL_KEY)) {
+          localStorage.setItem(HEAL_KEY, '1');
+          var jobs = [];
+          jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
+            return Promise.all(rs.map(function (r) { return r.unregister(); }));
+          }).catch(function () {}));
+          if (window.caches && caches.keys) {
+            jobs.push(caches.keys().then(function (ks) {
+              return Promise.all(ks.map(function (k) { return caches.delete(k); }));
+            }).catch(function () {}));
+          }
+          Promise.all(jobs).then(function () { location.reload(true); });
+          return; // 本次不再注册，等刷新后干净地重来
+        }
+      } catch (e) { /* localStorage 不可用则忽略 */ }
+
+      // 正常注册（自愈完成后）
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js').then(function (reg) { reg.update(); }).catch(function () {});
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
